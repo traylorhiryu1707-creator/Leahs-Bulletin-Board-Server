@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leah's Send-Off Bulletin Board</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Kalam:wght@300;400;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cork-brown: #C19A6B;
+            --cork-dark: #8B6F47;
+            --pin-red: #DC2626;
+            --pin-blue: #2563EB;
+            --pin-green: #16A34A;
+            --pin-yellow: #F59E0B;
+            --shadow-soft: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lifted: 0 8px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kalam', cursive;
+            background: linear-gradient(135deg, #8B6F47 0%, #A0826D 50%, #8B6F47 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 111, 71, 0.03) 2px, rgba(139, 111, 71, 0.03) 4px),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 111, 71, 0.03) 2px, rgba(139, 111, 71, 0.03) 4px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 4rem;
+            color: #FFF8DC;
+            text-shadow: 
+                3px 3px 0 #8B4513,
+                6px 6px 0 rgba(0, 0, 0, 0.2);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            transform: rotate(-2deg);
+        }
+
+        .subtitle {
+            font-family: 'Caveat', cursive;
+            font-size: 1.8rem;
+            color: #FFF8DC;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            animation: fadeIn 1s ease-out 0.3s backwards;
+        }
+
+        .btn {
+            font-family: 'Kalam', cursive;
+            font-size: 1.1rem;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px) rotate(1deg);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            color: #8B4513;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #87CEEB 0%, #4682B4 100%);
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #FFFACD;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+            animation: scaleIn 0.4s ease-out;
+            border: 3px solid #DEB887;
+        }
+
+        .modal-content::before {
+            content: '📌';
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            font-size: 2rem;
+            transform: rotate(25deg);
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #8B4513;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+
+        .close:hover {
+            transform: rotate(90deg) scale(1.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 1.2rem;
+            color: #8B4513;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #DEB887;
+            border-radius: 6px;
+            font-family: 'Kalam', cursive;
+            font-size: 1rem;
+            background: #FFF8DC;
+            transition: all 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #8B4513;
+            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .color-option.selected {
+            border-color: #8B4513;
+            transform: scale(1.15);
+        }
+
+        .color-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.5rem;
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .board {
+            background: linear-gradient(135deg, #C19A6B 0%, #A0826D 50%, #C19A6B 100%);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 
+                inset 0 0 100px rgba(0, 0, 0, 0.2),
+                0 10px 40px rgba(0, 0, 0, 0.3);
+            min-height: 500px;
+            position: relative;
+            animation: fadeIn 1s ease-out 0.5s backwards;
+        }
+
+        .board::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(139, 111, 71, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 111, 71, 0.3) 0%, transparent 50%);
+            border-radius: 20px;
+            pointer-events: none;
+        }
+
+        .posts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+            position: relative;
+        }
+
+        .post {
+            background: #FFEB3B;
+            padding: 25px;
+            border-radius: 4px;
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            cursor: grab;
+            transition: all 0.3s ease;
+            animation: popIn 0.5s ease-out backwards;
+            min-height: 200px;
+            transform: rotate(var(--rotation));
+        }
+
+        .post:hover {
+            transform: rotate(0deg) translateY(-5px) !important;
+            box-shadow: var(--shadow-lifted);
+            z-index: 10;
+        }
+
+        .post::before {
+            content: '📌';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .post-author {
+            font-family: 'Caveat', cursive;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 2px dashed rgba(0, 0, 0, 0.2);
+            padding-bottom: 8px;
+        }
+
+        .post-message {
+            font-size: 1.1rem;
+            color: #333;
+            line-height: 1.5;
+            word-wrap: break-word;
+            margin-bottom: 15px;
+        }
+
+        .post-date {
+            font-family: 'Kalam', cursive;
+            font-size: 0.85rem;
+            color: rgba(0, 0, 0, 0.5);
+            text-align: right;
+            font-style: italic;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(220, 38, 38, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            line-height: 1;
+            transition: all 0.3s;
+            opacity: 0;
+        }
+
+        .post:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            background: #DC2626;
+            transform: rotate(90deg) scale(1.2);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #FFF8DC;
+            font-size: 1.4rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .empty-state::before {
+            content: '📝';
+            display: block;
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) rotate(-2deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) rotate(-2deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5) rotate(calc(var(--rotation) + 10deg));
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) rotate(var(--rotation));
+            }
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1.3rem;
+            }
+            
+            .posts-container {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 20px;
+            }
+            
+            .board {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Leah's Send-Off Bulletin Board</h1>
+            <p class="subtitle">Wonderful Messages to Kick-Off An Exciting Journey!</p>
+        </header>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="openModal()">✏️ Create New Post</button>
+        </div>
+
+        <div class="board">
+            <div class="posts-container" id="postsContainer">
+                <div class="empty-state">
+                    Be the first to add a post!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="postModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 style="font-family: 'Permanent Marker', cursive; color: #8B4513; margin-bottom: 25px; text-align: center;">Create Your Post</h2>
+            <form id="postForm">
+                <div class="form-group">
+                    <label for="authorInput">Your Name</label>
+                    <input type="text" id="authorInput" required placeholder="Enter your name...">
+                </div>
+                <div class="form-group">
+                    <label for="messageInput">Message</label>
+                    <textarea id="messageInput" required placeholder="Write your message..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Choose Color</label>
+                    <div class="color-picker">
+                        <div class="color-option selected" style="background: #FFEB3B;" data-color="#FFEB3B"></div>
+                        <div class="color-option" style="background: #FFB3BA;" data-color="#FFB3BA"></div>
+                        <div class="color-option" style="background: #BAE1FF;" data-color="#BAE1FF"></div>
+                        <div class="color-option" style="background: #BAFFC9;" data-color="#BAFFC9"></div>
+                        <div class="color-option" style="background: #FFD700;" data-color="#FFD700"></div>
+                        <div class="color-option" style="background: #DDA0DD;" data-color="#DDA0DD"></div>
+                        <div class="color-option" style="background: #FFDAB9;" data-color="#FFDAB9"></div>
+                        <div class="color-option" style="background: #E0BBE4;" data-color="#E0BBE4"></div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">📌 Pin It!</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let posts = JSON.parse(localStorage.getItem('sendOffPosts')) || [];
+        let selectedColor = '#FFEB3B';
+
+        // Color picker functionality
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedColor = this.dataset.color;
+            });
+        });
+
+        function openModal() {
+            document.getElementById('postModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('postModal').classList.remove('active');
+            document.getElementById('postForm').reset();
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector('.color-option').classList.add('selected');
+            selectedColor = '#FFEB3B';
+        }
+
+        function createPost(e) {
+            e.preventDefault();
+            
+            const author = document.getElementById('authorInput').value;
+            const message = document.getElementById('messageInput').value;
+            
+            const post = {
+                id: Date.now(),
+                author: author,
+                message: message,
+                color: selectedColor,
+                date: new Date().toLocaleDateString(),
+                rotation: (Math.random() - 0.5) * 6 // Random rotation between -3 and 3 degrees
+            };
+            
+            posts.unshift(post);
+            localStorage.setItem('sendOffPosts', JSON.stringify(posts));
+            
+            renderPosts();
+            closeModal();
+        }
+
+        function deletePost(id) {
+            if (confirm('Are you sure you want to delete this post?')) {
+                posts = posts.filter(post => post.id !== id);
+                localStorage.setItem('sendOffPosts', JSON.stringify(posts));
+                renderPosts();
+            }
+        }
+
+        function renderPosts() {
+            const container = document.getElementById('postsContainer');
+            
+            if (posts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        Be the first to add a post!
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = posts.map((post, index) => `
+                <div class="post" style="background: ${post.color}; --rotation: ${post.rotation}deg; animation-delay: ${index * 0.1}s;">
+                    <button class="delete-btn" onclick="deletePost(${post.id})">×</button>
+                    <div class="post-author">${escapeHtml(post.author)}</div>
+                    <div class="post-message">${escapeHtml(post.message)}</div>
+                    <div class="post-date">${post.date}</div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('postModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Form submission handler
+        document.getElementById('postForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            createPost(e);
+        });
+
+        // Initial render
+        renderPosts();
+    </script>
+</body>
+</html>
